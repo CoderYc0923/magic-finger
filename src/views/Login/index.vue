@@ -54,7 +54,8 @@ const detectLandmarks = (video, ctx) => {
         if (landmarks?.length) {
             ctx.drawImage(video, 0, 0, width, height)
             drawLandmarksAndConnectors(landmarks[0], ctx);
-            handType === 'Left' ? putGesture(leftHandGestures(landmarks[0])) : putGesture(rightHandGestures(landmarks[0]));
+            // handType === 'Left' ? putGesture(leftHandGestures(landmarks[0])) : putGesture(rightHandGestures(landmarks[0]));
+            store.gesture = handType === 'Left' ? leftHandGestures(landmarks[0]) : rightHandGestures(landmarks[0])
             putFingLock(landmarks[0]);
         } else {
             ctx.drawImage(video, 0, 0, width, height)
