@@ -1,4 +1,5 @@
 import Home from 'views/Home/index.vue'
+import Login from 'views/Login/index.vue'
 import NotFound from 'views/NotFound/index.vue'
 
 import { fatherRouters } from './father'
@@ -6,7 +7,12 @@ import { fatherRouters } from './father'
 export const routes = [
     {
         path: '/',
-        redirect: {name: 'Home'},
+        redirect: {name: 'Login'},
+    },
+    {
+        path: '/login',
+        name: 'Login',
+        component: Login
     },
     {
         path: '/home',

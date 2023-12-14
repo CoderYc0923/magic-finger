@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.9",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.0",
     "sass": "^1.69.5",
