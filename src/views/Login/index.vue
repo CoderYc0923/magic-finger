@@ -56,13 +56,15 @@ const detectLandmarks = (video, ctx) => {
             drawLandmarksAndConnectors(landmarks[0], ctx);
             // handType === 'Left' ? putGesture(leftHandGestures(landmarks[0])) : putGesture(rightHandGestures(landmarks[0]));
             store.gesture = handType === 'Left' ? leftHandGestures(landmarks[0]) : rightHandGestures(landmarks[0])
-            putFingLock(landmarks[0]);
+            // putFingLock(landmarks[0]);
+            store.finger_locx = landmarks[0]
         } else {
             ctx.drawImage(video, 0, 0, width, height)
         }
     } catch (error) {
         console.error('Error detecting landmarks: ', error);
     }
+    requestAnimationFrame(detectLandmarks)
 }
 
 const startCamera = async (video) => {
@@ -72,19 +74,30 @@ const startCamera = async (video) => {
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
         await video.play();
+        detectLandmarks();
     } catch (error) {
 
     }
+}
+
+const setCanvasSize = () => {
+    canvasRef.value.height = window.innerHeight;
+    canvasRef.value.width = window.innerWidth;
 }
 
 const init = () => {
     if (handLandmarker) {
         const video = document.createElement('video');
         startCamera(video);
+        window.addEventListener('resize', setCanvasSize)
     }
 }
 
 onMounted(init)
+
+onBeforeUnMount(() => {
+    window.removeEventListener('resize', setCanvasSize)
+})
 </script>
 
 <style lang="scss" scoped>
