@@ -3,11 +3,11 @@ import App from './App.vue'
 import router from './router'
 
 import 'ant-design-vue/dist/reset.css';
-import { Modal as AModal } from 'ant-design-vue'
+import { Modal as AModal, Carousel as ACarousel } from 'ant-design-vue'
 
 const app = createApp(App)
 
-app.use(AModal)
+app.use(AModal).use(ACarousel)
 
 app.use(router)
 

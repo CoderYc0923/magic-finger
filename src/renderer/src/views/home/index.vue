@@ -6,15 +6,14 @@
   <a-modal v-model:open="modalVisible" :title="modalTitle" centered @ok="modalVisible = false">
     <template #footer>
     </template>
-    <p>some contents...</p>
-    <p>some contents...</p>
-    <p>some contents...</p>
+    <Carousel />
   </a-modal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import instructionSVG from '../../assets/imgs/instruction.svg'
+import Carousel from '../../components/Carousel.vue'
 
 const modalVisible = ref<boolean>(false)
 const modalTitle = ref<String>('说明')
