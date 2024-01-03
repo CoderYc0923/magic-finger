@@ -20,7 +20,9 @@
 <script setup lang="ts">
 </script>
 
-<style lang="less" scoped>.carousel {
+<style lang="less" scoped>
+.carousel {
   width: 100%;
   height: 100%;
-}</style>
+}
+</style>
