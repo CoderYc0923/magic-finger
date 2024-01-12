@@ -27,6 +27,9 @@ import Carousel from '../../components/Carousel.vue'
 import { InstagramFilled, LogoutOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 
+import { Camera } from '@mediapipe/camera_utils'
+import { FilesetResolver, GestureRecognizer } from '@mediapipe/tasks-vision'
+
 const canvasRef = ref()
 const videoRef = ref()
 const [messageApi] = message.useMessage()
@@ -43,16 +46,54 @@ const back = () => {
   showCanvas.value = false
 }
 
-const detectLandmarks = () => {
+const checkGesture = (result: any) => {
+  const attributes = ['gestures', 'handedness', 'handednesses', 'landmarks', 'worldLandmarks']
+  let flag = true
+  for (let attr of attributes) {
+    if (!result[attr]?.length) {
+      flag = false
+      break
+    }
+  }
+  return flag
+}
+
+const gestureRecognition = async () => {
   try {
-    const ctx = canvasRef.value.getContext('2d')
+    /* const ctx = canvasRef.value.getContext('2d')
     const { width, height } = canvasRef.value
     ctx.clearRect(0, 0, width, height)
-    ctx.drawImage(videoRef.value, 0, 0, width, height)
+    ctx.drawImage(videoRef.value, 0, 0, width, height) */
+
+    //创建图像文件处理任务
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+    )
+
+    const gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: './models/gesture_recognizer.task'
+      },
+      numHands: 2
+    })
+
+    if (videoRef.value) {
+      const camera = new Camera(videoRef.value, {
+        onFrame: async () => {
+          const result = await gestureRecognizer.recognize(videoRef.value)
+          let flag = checkGesture(result)
+          if (flag) {
+            console.log('追踪结果', result)
+          }
+        }
+      })
+
+      camera.start()
+    }
   } catch (error) {
     messageApi.info(`追踪失败: ${error}`)
   }
-  requestAnimationFrame(detectLandmarks)
+  // requestAnimationFrame(detectLandmarks)
 }
 
 const startCam = async () => {
@@ -65,7 +106,7 @@ const startCam = async () => {
     videoRef.value.setAttribute('autoplay', '')
     videoRef.value.setAttribute('playsinline', '')
     await videoRef.value.play()
-    // detectLandmarks()
+    gestureRecognition()
   } catch (error) {
     messageApi.info(`摄像头调用失败: ${error}`)
   }
