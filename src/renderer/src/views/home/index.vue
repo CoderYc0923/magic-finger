@@ -11,7 +11,7 @@
     />
     <div class="action-area" v-else>
       <video ref="videoRef" class="action-video"></video>
-      <!-- <canvas class="action-canvas" ref="canvasRef"></canvas> -->
+      <canvas class="action-canvas" ref="canvasRef" width="500" height="500"></canvas>
     </div>
   </div>
   <a-modal v-model:open="modalVisible" :title="modalTitle" centered @ok="modalVisible = false">
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import instructionSVG from '../../assets/imgs/instruction.svg'
 import Carousel from '../../components/Carousel.vue'
 import { InstagramFilled, LogoutOutlined } from '@ant-design/icons-vue'
@@ -83,7 +83,8 @@ const gestureRecognition = async () => {
           const result = await gestureRecognizer.recognize(videoRef.value)
           let flag = checkGesture(result)
           if (flag) {
-            console.log('追踪结果', result)
+            //console.log('追踪结果', result)
+            getIndexFingerTip(result)
           }
         }
       })
@@ -94,6 +95,32 @@ const gestureRecognition = async () => {
     messageApi.info(`追踪失败: ${error}`)
   }
   // requestAnimationFrame(detectLandmarks)
+}
+
+//获取食指顶部地标信息并绘制
+const getIndexFingerTip = (fingerData: any) => {
+  const ctx = canvasRef.value.getContext('2d')
+  console.log('getIndexFingerTip', ctx.beginPath)
+
+  ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+  const { landmarks } = fingerData
+  const indexFingerTipInfo = landmarks[0][8]
+  if (indexFingerTipInfo) {
+    /**
+     * 窗口映射地标逻辑（归一化）
+     * 窗口左上角 = x: 1 y: 0
+     * 窗口右上角 = x: 0 y: 0
+     * 窗口左下角 = x: 1 y: 1
+     * 窗口右下角 = x: 0 y: 1
+     */
+    const x = indexFingerTipInfo[0]
+    const y = indexFingerTipInfo[1]
+    ctx.beginPath()
+    ctx.arc(100, 100, 10, 0, 2 * Math.PI)
+    ctx.fillStyle = 'red'
+    ctx.fill()
+  }
+  console.log('食指信息:', indexFingerTipInfo)
 }
 
 const startCam = async () => {
@@ -118,7 +145,17 @@ const initCam = () => {
 
 const startMedia = () => {
   showCanvas.value = true
+  nextTick(resizeCanvasSize)
   initCam()
+}
+
+const resizeCanvasSize = () => {
+  console.log('canvasRef.value', canvasRef.value)
+
+  if (canvasRef.value) {
+    canvasRef.value.width = window.innerWidth
+    canvasRef.value.height = window.innerHeight
+  }
 }
 </script>
 
@@ -138,6 +175,12 @@ const startMedia = () => {
       height: 99%;
       transform: scaleX(-1); //水平翻转
       object-fit: 'fill';
+    }
+
+    .action-canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
     }
   }
 
