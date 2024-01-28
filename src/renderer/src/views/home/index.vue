@@ -180,7 +180,7 @@ const drawLandmarks = (fingerData: any) => {
       //@ts-ignore
       window.electronAPI.triggerMouse(cPosition)
     } else {
-      console.log('点击事件1111')
+      console.log('点击事件11')
     }
   } else {
     ctx.value.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
