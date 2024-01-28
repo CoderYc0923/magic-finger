@@ -17,16 +17,18 @@
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win --config",
     "build:mac": "npm run build && electron-builder --mac --config",
-    "build:linux": "npm run build && electron-builder --linux --config"
+    "build:linux": "npm run build && electron-builder --linux --config",
+    "rebuild": "npm rebuild --runtime=electron --target=25.9.8 --disturl=https://atom.io/download/atom-shell --abi=116"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
-    "@mediapipe/tasks-vision": "0.10.6",
     "@mediapipe/camera_utils": "0.3.1675466862",
+    "@mediapipe/tasks-vision": "0.10.6",
     "ant-design-vue": "4.x",
     "electron-updater": "^6.1.1",
+    "robotjs": "^0.6.0",
     "vue-router": "4",
     "webcam-easy": "^1.1.1"
   },
@@ -45,6 +47,7 @@
     "eslint": "^8.47.0",
     "eslint-plugin-vue": "^9.17.0",
     "less": "^4.2.0",
+    "node-abi": "^3.54.0",
     "prettier": "^3.0.2",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",

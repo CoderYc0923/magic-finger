@@ -30,8 +30,11 @@ import { message } from 'ant-design-vue'
 import { Camera } from '@mediapipe/camera_utils'
 import { FilesetResolver, GestureRecognizer } from '@mediapipe/tasks-vision'
 
+import { ipcRenderer } from 'electron'
+
 const canvasRef = ref()
 const videoRef = ref()
+const ctx = ref()
 const [messageApi] = message.useMessage()
 
 const showCanvas = ref<boolean>(false)
@@ -83,8 +86,10 @@ const gestureRecognition = async () => {
           const result = await gestureRecognizer.recognize(videoRef.value)
           let flag = checkGesture(result)
           if (flag) {
-            //console.log('追踪结果', result)
-            getIndexFingerTip(result)
+            console.log('追踪结果', result)
+            // getIndexFingerTip(result)
+            // test(result.landmarks[0])
+            drawLandmarks(result)
           }
         }
       })
@@ -97,15 +102,57 @@ const gestureRecognition = async () => {
   // requestAnimationFrame(detectLandmarks)
 }
 
-//获取食指顶部地标信息并绘制
-const getIndexFingerTip = (fingerData: any) => {
-  const ctx = canvasRef.value.getContext('2d')
-  console.log('getIndexFingerTip', ctx.beginPath)
+//识别当前手部信息
+const getHandGestures = (landmarks: any) => {
+  if (
+    Math.sqrt(
+      Math.pow(landmarks[4].x - landmarks[8].x, 2) +
+        Math.sqrt(Math.pow(landmarks[4].y - landmarks[8].y, 2))
+    ) < 0.25
+  )
+    return 'CLICK'
+  return 'HOVER'
+}
 
-  ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+//将窗口坐标转化为canvas坐标
+const transformPosition = (position: { x: number; y: number; z: number }) => {
+  /**
+   * 窗口坐标的原点是右上角
+   * canvas坐标的原点是左上角
+   * y1 = y2;x1 = -x2
+   */
+  return {
+    x: 1 - position.x,
+    y: position.y,
+    z: position.z
+  }
+}
+
+//将归一化坐标映射为窗口坐标
+const getMapPosition = (
+  cWidth: number,
+  cHeight: number,
+  position: { x: number; y: number; z: number }
+) => {
+  //获取当前窗口映射单位比例
+  /*  const divisor = Math.pow(10, 15)
+  const wScale = cWidth * divisor
+  const hScale = cHeight * divisor */
+  return {
+    x: position.x * cWidth,
+    y: position.y * cHeight,
+    z: position.z * 100
+  }
+}
+
+//获取地标信息并绘制
+const drawLandmarks = (fingerData: any) => {
+  ctx.value.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
   const { landmarks } = fingerData
-  const indexFingerTipInfo = landmarks[0][8]
-  if (indexFingerTipInfo) {
+  /* const indexFingerTipInfo = landmarks[0][8] */
+  console.log('ctx.value', landmarks)
+
+  if (landmarks && landmarks.length > 0) {
     /**
      * 窗口映射地标逻辑（归一化）
      * 窗口左上角 = x: 1 y: 0
@@ -113,14 +160,32 @@ const getIndexFingerTip = (fingerData: any) => {
      * 窗口左下角 = x: 1 y: 1
      * 窗口右下角 = x: 0 y: 1
      */
-    const x = indexFingerTipInfo[0]
-    const y = indexFingerTipInfo[1]
-    ctx.beginPath()
-    ctx.arc(100, 100, 10, 0, 2 * Math.PI)
-    ctx.fillStyle = 'red'
-    ctx.fill()
+    let gesture = getHandGestures(landmarks[0])
+    console.log('地标信息', gesture)
+    if (gesture === 'HOVER') {
+      ctx.value.fillStyle = 'teal'
+      //食指作为鼠标位置
+      /* for (let landmark of landmarks[0]) {
+        const wPosition = transformPosition(landmark)
+        const cPosition = getMapPosition(canvasRef.value.width, canvasRef.value.height, wPosition)
+        ctx.value.beginPath()
+        ctx.value.arc(cPosition.x, cPosition.y, 7, 0, 2 * Math.PI)
+        ctx.value.fill()
+      } */
+      const wPosition = transformPosition(landmarks[0][8])
+      const cPosition = getMapPosition(canvasRef.value.width, canvasRef.value.height, wPosition)
+      ctx.value.beginPath()
+      ctx.value.arc(cPosition.x, cPosition.y, 7, 0, 2 * Math.PI)
+      ctx.value.fill()
+      //@ts-ignore
+      window.electronAPI.triggerMouse(cPosition)
+    } else {
+      console.log('点击事件')
+    }
+  } else {
+    ctx.value.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
   }
-  console.log('食指信息:', indexFingerTipInfo)
+  //console.log('食指信息:', indexFingerTipInfo)
 }
 
 const startCam = async () => {
@@ -150,11 +215,10 @@ const startMedia = () => {
 }
 
 const resizeCanvasSize = () => {
-  console.log('canvasRef.value', canvasRef.value)
-
   if (canvasRef.value) {
     canvasRef.value.width = window.innerWidth
     canvasRef.value.height = window.innerHeight
+    ctx.value = canvasRef.value.getContext('2d')
   }
 }
 </script>
