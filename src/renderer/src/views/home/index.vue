@@ -177,8 +177,13 @@ const drawLandmarks = (fingerData: any) => {
       ctx.value.beginPath()
       ctx.value.arc(cPosition.x, cPosition.y, 7, 0, 2 * Math.PI)
       ctx.value.fill()
+      const position = {
+        ...cPosition,
+        width: canvasRef.value.width,
+        height: canvasRef.value.height
+      }
       //@ts-ignore
-      window.electronAPI.triggerMouse(cPosition)
+      window.electronAPI.triggerMouse(position)
     } else {
       console.log('点击事件11')
     }

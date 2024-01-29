@@ -1,9 +1,11 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 const robot = require('robotjs')
+
+var windowSize
 
 function createWindow(): void {
   // Create the browser window.
@@ -19,6 +21,9 @@ function createWindow(): void {
       contextIsolation: true // 是否为 Electron 的 API 和页面的 JS 上下文提供隔离的环境
     }
   })
+
+  //获取当前用户电脑屏幕尺寸
+  windowSize = screen.getPrimaryDisplay().workAreaSize
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -41,7 +46,11 @@ function createWindow(): void {
 // 处理鼠标移动
 ipcMain.on('triggerMouse', (event, arg) => {
   try {
-    robot.moveMouseSmooth(arg.x, arg.y)
+    const { width, height } = windowSize
+    //获取宽高比
+    const rw = width / arg.width
+    const rh = height / arg.height
+    robot.moveMouse(arg.x * rw, arg.y * rh)
   } catch (error) {
     console.error('triggerMouse', error)
   }
